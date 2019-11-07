@@ -125,16 +125,16 @@ class Tourney():
             Node: The root node
         """
         if(stage is 1):
-            left = Node('Stage{}-Minor'.format(stage+1), parent=root, contestant='Stage{}-Minor'.format(stage), player=None)
+            left = Node('Stage{}-Minor'.format(stage+1), parent=root, contestant='Stage{}-Minor'.format(stage+1), player=None)
             right = Node('Stage{}-Major'.format(stage), parent=root, contestant='Stage{}-Major'.format(stage), player=None)
-            sub_1 = Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major'.format(stage), player=None)
-            sub_2 = Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major'.format(stage), player=None)
+            sub_1 = Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major-Sub'.format(stage), player=None)
+            sub_2 = Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major-Sub'.format(stage), player=None)
             right.children = [sub_1, sub_2]
         else:
-            left = Node('Stage{}-Minor'.format(stage+1), parent=root, contestant='Stage{}-Minor'.format(stage), player=None)
+            left = Node('Stage{}-Minor'.format(stage+1), parent=root, contestant='Stage{}-Minor'.format(stage+1), player=None)
             right = Node('Stage{}-Major'.format(stage), parent=root, contestant='Stage{}-Major'.format(stage), player=None)
-            sub_1 = self.make_lower_tree(stage - 1, Node('Stage{}-Major'.format(stage), parent=right, contestant='Stage{}-Major'.format(stage), player=None))
-            sub_2 = self.make_lower_tree(stage - 1, Node('Stage{}-Major'.format(stage), parent=right, contestant='Stage{}-Major'.format(stage), player=None))
+            sub_1 = self.make_lower_tree(stage - 1, Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major-Sub'.format(stage), player=None))
+            sub_2 = self.make_lower_tree(stage - 1, Node('Stage{}-Major-Sub'.format(stage), parent=right, contestant='Stage{}-Major-Sub'.format(stage), player=None))
             right.children = [sub_1, sub_2]
 
         root.children = [left, right]
@@ -209,8 +209,24 @@ class Tourney():
                 loser = player2 if results['winner'] == player1.name else player1
                 loser.losses += 1
 
+                # First check to see if this is the last stage
+                #if(stage_num is self.stages):
+                    # Since we are the last stage, we go to the minor of the previous stage
+                    #lower = findall(self.lower_bracket, lambda node: node.name == 'Stage{}-Minor'.format(stage_num) and node.player is None)[0]
+                    #lower.contestant = loser.name
+                    #lower.player = loser
                 # If we are an odd stage, we move to the major loser branch, else the minor
-                if(stage_num % 2 is 1):
+                #elif(stage_num % 2 is 1):
+                    #lower = findall(self.lower_bracket, lambda node: node.name == 'Stage{}-Major-Sub'.format(stage_num) and node.player is None)[0]
+                    #lower.contestant = loser.name
+                    #lower.player = loser
+                #else:
+                    #lower = findall(self.lower_bracket, lambda node: node.name == 'Stage{}-Minor'.format(stage_num) and node.player is None)[0]
+                    #lower.contestant = loser.name
+                    #lower.player = loser
+
+                if(stage_num is 1):
+                    # Since we are the last stage, we go to the minor of the previous stage
                     lower = findall(self.lower_bracket, lambda node: node.name == 'Stage{}-Major-Sub'.format(stage_num) and node.player is None)[0]
                     lower.contestant = loser.name
                     lower.player = loser
@@ -218,7 +234,6 @@ class Tourney():
                     lower = findall(self.lower_bracket, lambda node: node.name == 'Stage{}-Minor'.format(stage_num) and node.player is None)[0]
                     lower.contestant = loser.name
                     lower.player = loser
-
                 num_match += 1
 
             # Now that this stage is done, print the brackets!
@@ -239,13 +254,38 @@ class Tourney():
         Arguments:
             :param self: This tourney
         """
-        # Lower brackets alternate between major then minor events. They do the major for the stage,
-        # then advance to the next stage to do the minor for that stage, then that stage's major.
-        # There is one less stage in the lower bracket than in the upper
+        # Lower brackets alternate between major and minor events. If
+        # applicable, we will do the minor for the stage (Stage 1 has
+        # no minor), then we will do the majors
         stage_num = 1
         while(stage_num <= self.stages):
             print('Lower Stage {}'.format(stage_num))
             print('---------------------------\n')
+            # If we are stage one, there is no minor
+            if(stage_num is not 1):
+                # Find the parents of all children nodes that need played
+                nodes = findall(self.lower_bracket, filter_=lambda node: node.name == 'Stage{}-Major-Sub'.format(stage_num))
+                num_match = 1
+                for node in nodes:
+                    print(node)
+                    player1, player2 = (x.player for x in node.children)
+                    cur_match = Match(player1, player2, self.wins_needed)
+
+                    print('Match {} - {} v. {}'.format(num_match, player1.name, player2.name))
+                    print('---------------------------------')
+                    results = cur_match.play_match()
+                    self.matches.append(cur_match)
+                    print('{} wins the match in {} games!\n'.format(results['winner'], results['games_played']))
+
+                    # Resolve Match
+                    node.contestant = results['winner']
+                    node.player = player1 if results['winner'] == player1.name else player2
+
+                    # The loser is done! No more advancement. Move on to the minors.
+                    loser = player2 if results['winner'] == player1.name else player1
+                    loser.losses += 1
+
+            # Now do the major
             # Find the parents of all children nodes that need played
             nodes = findall(self.lower_bracket, filter_=lambda node: node.name in ('Stage{}-Major'.format(stage_num)))
             num_match = 1
@@ -266,9 +306,9 @@ class Tourney():
                 # The loser is done! No more advancement. Move on to the minors.
                 loser = player2 if results['winner'] == player1.name else player1
                 loser.losses += 1
-                stage_num += 1
 
             # At the end of the stage, print the bracket
+            stage_num += 1
             self.print_lower_bracket()
         
         # Done! Print the bracket
@@ -335,6 +375,6 @@ class Tourney():
         """
         victory_options = [
             '{} is victorious! Huzza!', '{} stomped some noobs.', 'Hail God Emperor {}!',
-            'Hail {}! May his passing cleanse the world!'
+            'Bless {}! May his passing cleanse the world!'
         ]
         return victory_options[randint(0, len(victory_options)-1)].format(victor)
