@@ -3,6 +3,7 @@
 This module contains the player class.
 
 """
+from classes.enums import Choice
 from random import randint
 
 
@@ -29,7 +30,9 @@ class Player():
             :param name: The name of the player
         """
         self.name = name
-        self.options = {1: 'Rock', 2: 'Paper', 3: 'Scissors'}
+        self.options = {
+            Choice.ROCK: 'Rock', Choice.PAPER: 'Paper', Choice.SCISSORS: 'Scissors'
+        }
         self.wins = 0
         self.losses = 0
 
@@ -50,7 +53,7 @@ class Player():
         This method is used to actually play rock, paper, scissors. It throws
         one of the available options in the form:
             {
-                'choice': int,
+                'choice': Choice,
                 'str': str
             }
 
@@ -61,5 +64,5 @@ class Player():
             dict: A dictionary containing the int representation and the
                   string representation of the choice thrown.
         """
-        choice = randint(1, len(self.options))
+        choice = Choice(randint(0, len(Choice)-1))
         return {'choice': choice, 'str': self.options[choice]}

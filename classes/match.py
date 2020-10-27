@@ -57,6 +57,7 @@ class Match():
             elif(game.winner == self.player2.name):
                 self.player2.wins += 1
             else:
+                # ???
                 pass
 
             if(self.player1.wins >= self.wins_needed):
@@ -64,6 +65,8 @@ class Match():
 
             if(self.player2.wins >= self.wins_needed):
                 loop = False
+
+            self.games.append(game)
 
         # Match has ended! Reset player variables and return a dictionary with results
         self.winner = self.player1.name if self.player1.wins >= self.wins_needed else self.player2.name

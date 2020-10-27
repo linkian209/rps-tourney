@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block nav %}
+<li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Home</a></li>
+<li class="nav-item"><a class="nav-link" href="#">Page 1</a></li>
+<li class="nav-item"><a class="nav-link" href="#">Page 2</a></li>
+<li class="active nav-item"><a class="nav-link" href="{{ url_for('view_q_table') }}">Q-Table</a></li>
+{% endblock %}
+
+{% block content %}
+<div class='contain' style='overflow-y:scroll;'>
+    <h1 style='text-align: center;'>Current Q Table</h1>
+    <br>
+    <table class='table'>
+        <thead>
+            <tr>
+                <th scope="col">State</th>
+                <th scope="col">Rock</th>
+                <th scope="col">Paper</th>
+                <th scope="col">Scissors</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in q_table %}
+            <tr>
+                <td scope="row">{{ loop.index0 }}</td>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

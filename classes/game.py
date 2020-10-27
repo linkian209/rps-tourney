@@ -3,6 +3,7 @@
 This module contains the Game class.
 """
 from classes.player import Player
+from classes.enums import Choice
 
 
 class Game():
@@ -58,18 +59,18 @@ class Game():
             self.game_result = 'Tie Game!'
             return None
         # Player 1 throws Rock
-        elif(self.player1_throw['choice'] is 1):
+        elif(self.player1_throw['choice'] is Choice.ROCK):
             # Player 1 wins on a Scissors
-            if(self.player2_throw['choice'] is 3):
+            if(self.player2_throw['choice'] is Choice.SCISSORS):
                 self.game_result = '{} wins!'.format(self.player1.name)
                 return self.player1.name
             else:
                 self.game_result = '{} wins!'.format(self.player2.name)
                 return self.player2.name
         # Player 1 throws Scissors
-        elif(self.player1_throw['choice'] is 3):
+        elif(self.player1_throw['choice'] is Choice.SCISSORS):
             # Player 1 wins on a Paper
-            if(self.player2_throw['choice'] is 2):
+            if(self.player2_throw['choice'] is Choice.PAPER):
                 self.game_result = '{} wins!'.format(self.player1.name)
                 return self.player1.name
             else:
@@ -78,7 +79,7 @@ class Game():
         # Player 1 throws Paper
         else:
             # Player 1 wins on a Rock
-            if(self.player2_throw['choice'] is 1):
+            if(self.player2_throw['choice'] is Choice.ROCK):
                 self.game_result = '{} wins!'.format(self.player1.name)
                 return self.player1.name
             else:

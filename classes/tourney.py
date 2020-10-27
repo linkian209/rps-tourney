@@ -36,6 +36,8 @@ class Tourney():
         run_lower_bracket(self): Runs the lower bracket
         run_championship(self): Runs the championship
         victory_screen(self, victor): Creates the victory screen for the winner
+        make_match(player1, player2): Returns a Match Object with
+                                      the inputted parameters
     """
     def __init__(self, players, wins_needed=2):
         """
@@ -45,13 +47,13 @@ class Tourney():
 
         Arguments:
             :param self: This object
-            :param players: A list of strings of names of players
+            :param players: A list of Player-like objects
             :param wins_needed: Number of wins needed to win a match. Default=2
 
         Raises:
             Exception: The number of players is not a power of 2
         """
-        self.players = []
+        self.players = players
         self.matches = []
         self.wins_needed = wins_needed
         num_players = len(players)
@@ -70,13 +72,11 @@ class Tourney():
                 self.lower_bracket = self.make_lower_tree(self.stages - 1, Node('Stage{}-Major'.format(self.stages), contestant='Lower Champ', player=None))
 
             # Now populate the upper bracket to start
-            shuffle(players)
-            groups = zip(findall(self.upper_bracket, filter_=lambda node: node.name in ('Stage1')), players)
+            shuffle(self.players)
+            groups = zip(findall(self.upper_bracket, filter_=lambda node: node.name in ('Stage1')), self.players)
             for node, player in groups:
-                node.contestant = player
-                new_player = Player(player)
-                self.players.append(new_player)
-                node.player = new_player
+                node.contestant = player.name
+                node.player = player
 
             # We are now done! Print the brackets
             self.print_brackets()
@@ -174,6 +174,21 @@ class Tourney():
         print(RenderTree(self.lower_bracket, style=AsciiStyle()).by_attr(attrname='contestant'))
         print('')
 
+    def make_match(self, player1, player2):
+        """
+        This method returns a Match object. This method is intended to be
+        overriden by the Q Learning variant.
+
+        Arguments:
+            :param self: (Tourney) This Object
+            :param player1: (Player) A Player
+            :param player2: (Player) Another Player
+        
+        Returns:
+            (Match) A match object
+        """
+        return Match(player1, player2, self.wins_needed)
+
     def run_upper_bracket(self):
         """
         This method runs through the upper bracket. This advances through each
@@ -194,7 +209,7 @@ class Tourney():
             num_match = 1
             for node in nodes:
                 player1, player2 = (x.player for x in node.children)
-                cur_match = Match(player1, player2, self.wins_needed)
+                cur_match = self.make_match(player1, player2)
 
                 print('Match {} - {} v. {}'.format(num_match, player1.name, player2.name))
                 print('---------------------------------')
@@ -269,7 +284,7 @@ class Tourney():
                 for node in nodes:
                     print(node)
                     player1, player2 = (x.player for x in node.children)
-                    cur_match = Match(player1, player2, self.wins_needed)
+                    cur_match = self.make_match(player1, player2)
 
                     print('Match {} - {} v. {}'.format(num_match, player1.name, player2.name))
                     print('---------------------------------')
@@ -291,7 +306,7 @@ class Tourney():
             num_match = 1
             for node in nodes:
                 player1, player2 = (x.player for x in node.children)
-                cur_match = Match(player1, player2, self.wins_needed)
+                cur_match = self.make_match(player1, player2)
 
                 print('Match {} - {} v. {}'.format(num_match, player1.name, player2.name))
                 print('---------------------------------')
@@ -333,7 +348,7 @@ class Tourney():
         print('{} v. {}'.format(upper.name, lower.name))
         print('Match 1')
         print('---------------------------------')
-        cur_match = Match(upper, lower, self.wins_needed)
+        cur_match = self.make_match(upper, lower)
         results = cur_match.play_match()
         self.matches.append(cur_match)
         print('{} wins the match in {} games!\n'.format(results['winner'], results['games_played']))
@@ -346,7 +361,7 @@ class Tourney():
         if(loser.name == upper.name):
             print('\nMatch 2')
             print('---------------------------------')
-            cur_match = Match(upper, lower, self.wins_needed)
+            cur_match = self.make_match(upper, lower)
             results = cur_match.play_match()
             self.matches.append(cur_match)
             print('{} wins the match in {} games!\n'.format(results['winner'], results['games_played']))
@@ -360,6 +375,7 @@ class Tourney():
         print('Grand Champion')
         print('---------------------------------')
         print('{}'.format(self.victory_screen(winner.name)))
+        return(winner)
 
     def victory_screen(self, victor):
         """
