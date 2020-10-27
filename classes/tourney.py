@@ -282,7 +282,6 @@ class Tourney():
                 nodes = findall(self.lower_bracket, filter_=lambda node: node.name == 'Stage{}-Major-Sub'.format(stage_num))
                 num_match = 1
                 for node in nodes:
-                    print(node)
                     player1, player2 = (x.player for x in node.children)
                     cur_match = self.make_match(player1, player2)
 
